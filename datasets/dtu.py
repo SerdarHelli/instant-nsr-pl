@@ -175,16 +175,17 @@ class DTUDatasetBase():
 
                 normal_path=os.path.join(self.config.root_dir, 'normal', dirs[i]+".png")
                 normal = np.array(Image.open(normal_path).resize(self.img_wh, Image.BICUBIC))
-                mask = np.array(Image.open(normal_path))
-                mask[mask==127]=0
-                mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
-                _,mask = cv2.threshold(mask,127,255,cv2.THRESH_BINARY,cv2.THRESH_OTSU)
-                mask=cv2.resize(mask,self.img_wh)
+                mask = normal[:, :, -1]
+
                 normal = img2normal(normal)
+                normal[mask==0] = [0,0,0]
+                mask = mask> (0.5*255)
                 normal_cam_cv = normal_opengl2opencv(normal)
                 normal_world = camNormal2worldNormal(inv_RT(RT_cv)[:3, :3], normal_cam_cv)
-
-                self.all_images.append(TF.to_tensor(normal2img(normal_world)).permute(1, 2, 0)[...,:3])
+                img=TF.to_tensor(normal2img(normal_world)).permute(1, 2, 0)[...,:3]
+                for i in range(3):
+                    img[:,:,i]=img[:,:,i]*mask
+                self.all_images.append(img)
                 self.all_fg_masks.append(TF.to_tensor(mask)[0]) # (h, w)
 
         self.all_c2w = torch.stack(self.all_c2w, dim=0)
