@@ -69,6 +69,8 @@ class NeuSSystem(BaseSystem):
         if stage in ['train']:
             if self.config.model.background_color == 'white':
                 self.model.background_color = torch.ones((3,), dtype=torch.float32, device=self.rank)
+            elif self.config.model.background_color == 'black':
+                self.model.background_color = torch.zeros((3,), dtype=torch.float32, device=self.rank)
             elif self.config.model.background_color == 'random':
                 self.model.background_color = torch.rand((3,), dtype=torch.float32, device=self.rank)
             else:
