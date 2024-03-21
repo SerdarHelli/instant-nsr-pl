@@ -162,7 +162,9 @@ class DTUDatasetBase():
 
             c2w=inv_RT(RT_cv)
             c2w = torch.from_numpy(c2w).float()
-            self.all_c2w.append(c2w)
+            c2w_ = c2w.clone()
+            c2w_[:3,1:3] *= -1. # flip input sign
+            self.all_c2w.append(c2w_[:3,:4])      
 
 
             if self.split in ['train', 'val']:
