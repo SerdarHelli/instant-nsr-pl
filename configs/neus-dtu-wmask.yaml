@@ -34,7 +34,7 @@ model:
     grad_type: analytic
     isosurface:
       method: mc
-      resolution: 512
+      resolution: 256
       chunk: 2097152
       threshold: 0.
     xyz_encoding_config:
@@ -73,7 +73,7 @@ system:
   loss:
     lambda_rgb_mse: 0.
     lambda_rgb_l1: 1.
-    lambda_mask: 0.0
+    lambda_mask: 1.
     lambda_eikonal: 0.1
     lambda_curvature: 0.
     lambda_sparsity: 0.0
@@ -81,6 +81,7 @@ system:
     lambda_distortion_bg: 0.0
     lambda_opaque: 0.0
     sparsity_scale: 1.
+    lambda_3d_normal_smooth: 0.0
   optimizer:
     name: AdamW
     args:
@@ -118,7 +119,7 @@ export:
   export_vertex_color: True
 
 trainer:
-  max_steps: 20000
+  max_steps: 15000
   log_every_n_steps: 100
   num_sanity_val_steps: 0
   val_check_interval: 5000
