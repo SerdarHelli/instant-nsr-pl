@@ -183,8 +183,8 @@ class DTUDatasetBase():
                 normal_cam_cv = normal_opengl2opencv(normal)
                 normal_world = camNormal2worldNormal(inv_RT(RT_cv)[:3, :3], normal_cam_cv)
                 img=TF.to_tensor(normal2img(normal_world)).permute(1, 2, 0)[...,:3]
-                for i in range(3):
-                    img[:,:,i]=img[:,:,i]*mask
+                for l in range(3):
+                    img[:,:,l]=img[:,:,l]*mask
                 self.all_images.append(img)
                 self.all_fg_masks.append(TF.to_tensor(mask)[0]) # (h, w)
 

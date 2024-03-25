@@ -135,6 +135,22 @@ class NeuSSystem(BaseSystem):
             self.log('train/loss_distortion', loss_distortion)
             loss += loss_distortion * self.C(self.config.system.loss.lambda_distortion)    
 
+        if self.C(self.config.system.loss.lambda_3d_normal_smooth) > 0:
+            if "random_sdf_grad" not in out:
+                raise ValueError(
+                    "random_sdf_grad is required for normal smooth loss, no normal is found in the output."
+                )
+            if "normal_perturb" not in out:
+                raise ValueError(
+                    "normal_perturb is required for normal smooth loss, no normal_perturb is found in the output."
+                )
+            normals_3d = out["random_sdf_grad"]
+            normals_perturb_3d = out["normal_perturb"]
+            loss_3d_normal_smooth = (normals_3d - normals_perturb_3d).abs().mean()
+            self.log('train/loss_3d_normal_smooth', loss_3d_normal_smooth, prog_bar=True )
+
+            loss += loss_3d_normal_smooth *  self.C(self.config.system.loss.lambda_3d_normal_smooth)  
+            
         if self.config.model.learned_background and self.C(self.config.system.loss.lambda_distortion_bg) > 0:
             loss_distortion_bg = flatten_eff_distloss(out['weights_bg'], out['points_bg'], out['intervals_bg'], out['ray_indices_bg'])
             self.log('train/loss_distortion_bg', loss_distortion_bg)

@@ -11,6 +11,8 @@ from systems.utils import update_module_step
 from nerfacc import ContractionType, OccupancyGrid, ray_marching, render_weight_from_density, render_weight_from_alpha, accumulate_along_rays
 from nerfacc.intersection import ray_aabb_intersect
 
+import pdb
+
 
 class VarianceNetwork(nn.Module):
     def __init__(self, config):
@@ -230,6 +232,7 @@ class NeuSModel(BaseModel):
             sdf, sdf_grad, feature, sdf_laplace = self.geometry(positions, with_grad=True, with_feature=True, with_laplace=True)
         else:
             sdf, sdf_grad, feature = self.geometry(positions, with_grad=True, with_feature=True)
+
         normal = F.normalize(sdf_grad, p=2, dim=-1)
         alpha = self.get_alpha(sdf, normal, t_dirs, dists)[...,None]
         rgb = self.texture(feature, t_dirs, normal)
@@ -242,6 +245,20 @@ class NeuSModel(BaseModel):
         comp_normal = accumulate_along_rays(weights, ray_indices, values=normal, n_rays=n_rays)
         comp_normal = F.normalize(comp_normal, p=2, dim=-1)
 
+        pts_random = torch.rand([1024*2, 3]).to(sdf.dtype).to(sdf.device) * 2 - 1  # normalized to (-1, 1)
+
+        if self.config.geometry.grad_type == 'finite_difference':
+            random_sdf, random_sdf_grad, _ = self.geometry(pts_random, with_grad=True, with_feature=False, with_laplace=True)
+            _, normal_perturb, _ = self.geometry(
+                        pts_random + torch.randn_like(pts_random) * 1e-2,
+                        with_grad=True, with_feature=False, with_laplace=True
+                    )
+        else:
+            random_sdf, random_sdf_grad = self.geometry(pts_random, with_grad=True, with_feature=False)
+            _, normal_perturb = self.geometry(positions + torch.randn_like(positions) * 1e-2,
+                        with_grad=True, with_feature=False,)
+
+        # pdb.set_trace()
         out = {
             'comp_rgb': comp_rgb,
             'comp_normal': comp_normal,
@@ -255,6 +272,9 @@ class NeuSModel(BaseModel):
             out.update({
                 'sdf_samples': sdf,
                 'sdf_grad_samples': sdf_grad,
+                'random_sdf': random_sdf,
+                'random_sdf_grad': random_sdf_grad,
+                'normal_perturb' : normal_perturb,
                 'weights': weights.view(-1),
                 'points': midpoints.view(-1),
                 'intervals': dists.view(-1),
