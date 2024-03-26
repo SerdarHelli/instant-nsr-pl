@@ -420,9 +420,9 @@ def save_images(object_file: str, viewidx: int) -> None:
 
 
         
-        cv2.imwrite('{}/{}/{}/rgb_{}.png'.format(args.output_folder, object_uid,"image", view), color_map)
+        cv2.imwrite('{}/{}/{}/rgb_{}.png'.format(args.output_folder, object_uid,"image", view), color_map.astype(np.uint8))
         # cv2.imwrite('{}/{}/depth_{}.png'.format(args.output_folder,object_uid, view), depth_map)
-        cv2.imwrite('{}/{}/{}/normals_{}.png'.format(args.output_folder,object_uid,"normal", view), normal_map)
+        cv2.imwrite('{}/{}/{}/normals_{}.png'.format(args.output_folder,object_uid,"normal", view), normal_map.astype(np.uint8))
         # cv2.imwrite('{}/{}/mask_{}.png'.format(args.output_folder,object_uid, view), valid_mask)
 
 
