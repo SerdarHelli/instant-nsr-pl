@@ -6,7 +6,7 @@ dataset:
   name: dtu
   root_dir: /content/scene_teeth_blender/scene_teeth_blender/00009393_lower
   cameras_file: cameras_sphere.npz
-  img_downscale: 2 # specify training image size by either img_wh or img_downscale
+  img_downscale: 1 # specify training image size by either img_wh or img_downscale
   n_test_traj_steps: 60
   apply_mask: true
 model:
