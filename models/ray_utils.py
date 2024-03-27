@@ -1,4 +1,5 @@
 import torch
+
 import numpy as np
 
 
@@ -15,26 +16,9 @@ def get_ray_directions(W, H, fx, fy, cx, cy, use_pixel_centers=True):
     )
     i, j = torch.from_numpy(i), torch.from_numpy(j)
 
-    # directions = torch.stack([(i - cx) / fx, -(j - cy) / fy, -torch.ones_like(i)], -1) # (H, W, 3)
-    # opencv system
-    directions = torch.stack([(i - cx) / fx, (j - cy) / fy, torch.ones_like(i)], -1) # (H, W, 3)
+    directions = torch.stack([(i - cx) / fx, -(j - cy) / fy, -torch.ones_like(i)], -1) # (H, W, 3)
 
     return directions
-
-
-def get_ortho_ray_directions_origins(W, H, use_pixel_centers=True):
-    pixel_center = 0.5 if use_pixel_centers else 0
-    i, j = np.meshgrid(
-        np.arange(W, dtype=np.float32) + pixel_center,
-        np.arange(H, dtype=np.float32) + pixel_center,
-        indexing='xy'
-    )
-    i, j = torch.from_numpy(i), torch.from_numpy(j)
-
-    origins = torch.stack([(i/W-0.5)*2, (j/H-0.5)*2, torch.zeros_like(i)], dim=-1) # W, H, 3
-    directions = torch.stack([torch.zeros_like(i), torch.zeros_like(j), torch.ones_like(i)], dim=-1) # W, H, 3
-
-    return origins, directions
 
 
 def get_rays(directions, c2w, keepdim=False):
@@ -58,6 +42,23 @@ def get_rays(directions, c2w, keepdim=False):
         rays_o, rays_d = rays_o.reshape(-1, 3), rays_d.reshape(-1, 3)
 
     return rays_o, rays_d
+
+def get_ortho_ray_directions_origins(W, H, use_pixel_centers=True):
+    pixel_center = 0.5 if use_pixel_centers else 0
+    i, j = np.meshgrid(
+        np.arange(W, dtype=np.float32) + pixel_center,
+        np.arange(H, dtype=np.float32) + pixel_center,
+        indexing='xy'
+    )
+    i, j = torch.from_numpy(i), torch.from_numpy(j)
+
+    origins = torch.stack([(i/W-0.5)*2, (j/H-0.5)*2, torch.zeros_like(i)], dim=-1) # W, H, 3
+    directions = torch.stack([torch.zeros_like(i), torch.zeros_like(j), torch.ones_like(i)], dim=-1) # W, H, 3
+
+    return origins, directions
+
+
+
 
 
 # rays_v = torch.matmul(self.pose_all[img_idx, None, None, :3, :3].cuda(), rays_v[:, :, :, None].cuda()).squeeze()  # W, H, 3

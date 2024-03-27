@@ -164,6 +164,7 @@ class DTUDatasetBase():
             c2w = torch.from_numpy(c2w).float()
             c2w_ = c2w.clone()
             c2w_[:3,1:3] *= -1. # flip input sign
+
             self.all_c2w.append(c2w_[:3,:4])      
 
 
@@ -175,16 +176,26 @@ class DTUDatasetBase():
 
                 normal_path=os.path.join(self.config.root_dir, 'normal', dirs[i]+".png")
                 normal = np.array(Image.open(normal_path).resize(self.img_wh, Image.BICUBIC))
-                mask = normal[:, :, -1]
+        
+                mask=normal.copy()
+                mask[mask==[127,127,127]]=0
+                mask = cv2.cvtColor(mask, cv2.COLOR_BGR2GRAY)
 
+                (T, mask) = cv2.threshold(mask, 0, 255,
+                  cv2.THRESH_BINARY_INV )
+                mask = cv2.bitwise_not(mask)
                 normal = img2normal(normal)
-                normal[mask==0] = [0,0,0]
-                mask = mask> (0.5*255)
+                
                 normal_cam_cv = normal_opengl2opencv(normal)
                 normal_world = camNormal2worldNormal(inv_RT(RT_cv)[:3, :3], normal_cam_cv)
                 img=TF.to_tensor(normal2img(normal_world)).permute(1, 2, 0)[...,:3]
+
+
                 for l in range(3):
                     img[:,:,l]=img[:,:,l]*mask
+              
+                cv2.imwrite("/content/deneme_img.png",np.uint8(img.numpy()*255))
+                cv2.imwrite("/content/deneme_mask.png",np.uint8(mask))
                 self.all_images.append(img)
                 self.all_fg_masks.append(TF.to_tensor(mask)[0]) # (h, w)
 

@@ -96,7 +96,7 @@ def load_a_prediction(root_dir, test_object, imSize, view_types, load_color=Fals
     directions = []
     ray_origins = []
 
-    RT_front =  np.load(os.path.join(root_dir,test_object, 'camera', '000_front.npz'%( view)))   # world2cam matrix
+    RT_front =  np.load(os.path.join(root_dir,test_object, 'camera', '000_front.npz'))["RT"]  # world2cam matrix
     RT_front_cv = RT_opengl2opencv(RT_front)   # convert normal from opengl to opencv
     for idx, view in enumerate(view_types):
         print(os.path.join(root_dir,test_object))
