@@ -38,4 +38,3 @@ class ConsoleLogger(LightningLoggerBase):
         if not metrics_:
             return
         self.experiment.info(f"\nEpoch{metrics['epoch']} Step{step}\n{self.dict_printer(metrics_)}")
-
