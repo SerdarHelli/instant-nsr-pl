@@ -74,8 +74,6 @@ def normal_opengl2opencv(normal):
     R_bcam2cv = np.array([1, -1, -1], np.float32)
     normal_cv = normal * R_bcam2cv[None, None, :]
 
-    print(np.shape(normal_cv))
-
     return normal_cv
 
 def inv_RT(RT):
@@ -98,31 +96,28 @@ def load_a_prediction(root_dir, test_object, imSize, view_types, load_color=Fals
     directions = []
     ray_origins = []
 
-    RT_front = np.loadtxt(glob(os.path.join(cam_pose_dir, '*_%s_RT.txt'%( 'front')))[0])   # world2cam matrix
+    RT_front =  np.load(os.path.join(root_dir,test_object, 'camera', '000_front.npz'%( view)))   # world2cam matrix
     RT_front_cv = RT_opengl2opencv(RT_front)   # convert normal from opengl to opencv
     for idx, view in enumerate(view_types):
         print(os.path.join(root_dir,test_object))
-        normal_filepath = os.path.join(root_dir, test_object, 'normals_000_%s.png'%( view))
+        normal_filepath = os.path.join(root_dir, test_object,"normal", 'normals_000_%s.png'%( view))
         # Load key frame
+        image_filepath = os.path.join(root_dir, test_object,"image", 'rgb_000_%s.png'%( view))
+
         if load_color:  # use bgr
-            image =np.array(PIL.Image.open(normal_filepath.replace("normals", "rgb")).resize(imSize))[:, :, :3]
+            image =np.array(PIL.Image.open(image_filepath).resize(imSize))[:, :, :3]
 
         normal = np.array(PIL.Image.open(normal_filepath).resize(imSize))
         mask = normal[:, :, 3]
         normal = normal[:, :, :3]
 
-        color_mask = np.array(PIL.Image.open(os.path.join(root_dir,test_object, 'masked_colors/rgb_000_%s.png'%( view))).resize(imSize))[:, :, 3]
-        invalid_color_mask = color_mask < 255*0.5
-        threshold =  np.ones_like(image[:, :, 0]) * 250
-        invalid_white_mask = (image[:, :, 0] > threshold) & (image[:, :, 1] > threshold) & (image[:, :, 2] > threshold)
-        invalid_color_mask_final = invalid_color_mask & invalid_white_mask
-        color_mask = (1 - invalid_color_mask_final) > 0
 
         # if erode_mask:
         #     kernel = np.ones((3, 3), np.uint8)
         #     mask = cv2.erode(mask, kernel, iterations=1)
+        cameras_data=np.load(os.path.join(root_dir,test_object, 'camera', '000_%s.npz'%( view)))
 
-        RT = np.loadtxt(os.path.join(cam_pose_dir, '000_%s_RT.txt'%( view)))  # world2cam matrix
+        K, RT = cameras_data["K"],cameras_data["RT"]
 
         normal = img2normal(normal)
 
@@ -132,7 +127,7 @@ def load_a_prediction(root_dir, test_object, imSize, view_types, load_color=Fals
             all_images.append(image)
         
         all_masks.append(mask)
-        all_color_masks.append(color_mask)
+        all_color_masks.append(mask)
         RT_cv = RT_opengl2opencv(RT)   # convert normal from opengl to opencv
         all_poses.append(inv_RT(RT_cv))   # cam2world
         all_w2cs.append(RT_cv)

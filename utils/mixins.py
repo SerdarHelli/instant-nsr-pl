@@ -208,18 +208,53 @@ class SaverMixin():
             imgs = [cv2.cvtColor(i, cv2.COLOR_BGR2RGB) for i in imgs]
             imageio.mimsave(self.get_save_path(filename), imgs, fps=fps)
     
-    def save_mesh(self, filename, v_pos, t_pos_idx, v_tex=None, t_tex_idx=None, v_rgb=None):
+    def save_mesh(self, filename, v_pos, t_pos_idx, v_tex=None, t_tex_idx=None, v_rgb=None, ortho_scale=1):
         v_pos, t_pos_idx = self.convert_data(v_pos), self.convert_data(t_pos_idx)
         if v_rgb is not None:
             v_rgb = self.convert_data(v_rgb)
 
+        if ortho_scale is not None:
+            print("ortho scale is: ", ortho_scale)
+            v_pos = v_pos * ortho_scale * 0.5
+
+        # change to front-facing
+        v_pos_copy =  np.zeros_like(v_pos)  
+        v_pos_copy[:, 0] = v_pos[:, 0]
+        v_pos_copy[:, 1] = v_pos[:, 2]
+        v_pos_copy[:, 2] = v_pos[:, 1] 
+
         import trimesh
         mesh = trimesh.Trimesh(
-            vertices=v_pos,
+            vertices=v_pos_copy,
             faces=t_pos_idx,
             vertex_colors=v_rgb
         )
+        trimesh.repair.fix_inversion(mesh)
         mesh.export(self.get_save_path(filename))
+        # mesh.export(self.get_save_path(filename.replace(".obj", "-meshlab.obj")))
+
+        # v_pos_copy[:, 0] = v_pos[:, 1] * -1
+        # v_pos_copy[:, 1] = v_pos[:, 0]
+        # v_pos_copy[:, 2] = v_pos[:, 2]
+
+        # mesh = trimesh.Trimesh(
+        #     vertices=v_pos_copy,
+        #     faces=t_pos_idx,
+        #     vertex_colors=v_rgb
+        # )
+        # mesh.export(self.get_save_path(filename.replace(".obj", "-blender.obj")))
+
+
+        # v_pos_copy[:, 0] = v_pos[:, 0] 
+        # v_pos_copy[:, 1] = v_pos[:, 1] * -1
+        # v_pos_copy[:, 2] = v_pos[:, 2] * -1
+
+        # mesh = trimesh.Trimesh(
+        #     vertices=v_pos_copy,
+        #     faces=t_pos_idx,
+        #     vertex_colors=v_rgb
+        # )
+        # mesh.export(self.get_save_path(filename.replace(".obj", "-opengl.obj")))
     
     def save_file(self, filename, src_path):
         shutil.copyfile(src_path, self.get_save_path(filename))
