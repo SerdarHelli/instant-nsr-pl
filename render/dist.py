@@ -33,7 +33,6 @@ for x in dirs_aug:
             "path_aug":args.path_aug+"/"+x,
             "path_orig":args.path_orig+"/"+y+"_lower.obj",
             "path_target_aug": x.split(".")[0],
-            "path_target_input": y
 
   }
   data.append(sub_data)
@@ -87,7 +86,6 @@ def worker(
         path_aug = item["path_aug"]
         path_orig = item["path_orig"]
         path_target_aug = item["path_target_aug"]
-        path_target_input = item["path_target_input"]        
         command1 = (
             f" CUDA_VISIBLE_DEVICES={gpu} "
             f" blenderproc run --blender-install-path ./ /content/instant-nsr-pl/render/render_blenderproc_persp.py"
@@ -105,7 +103,7 @@ def worker(
             f" blenderproc run --blender-install-path ./ /content/instant-nsr-pl/render/render_blenderproc_persp.py"
             f" --object_path {path_orig} --view 0"
             f" --output_folder /content/data/gt"
-            f" --object_uid {path_target_input}"
+            f" --object_uid {path_target_aug}"
             f" --resolution 256 "
             f" --radius 1.35 "
             f" --delta_z {delta_z}"
