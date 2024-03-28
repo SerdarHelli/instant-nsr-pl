@@ -46,11 +46,11 @@ def check_task_finish(render_dir, view_index):
     if os.path.exists(render_dir):
         for t in files_type:
             if t=="rgb":
-              folder="image"
+                folder="image"
             else:
-              folder="normal"
+                folder="normal"
             for face in VIEWS:
-                fpath = os.path.join(render_dir, f'{folder}/{t}{view_index}_{face}.png')
+                fpath = os.path.join(render_dir, f'{folder}/{t}_{view_index}{face}.png')
                 # print(fpath)
                 if not os.path.exists(fpath):
                     flag = False
@@ -69,7 +69,7 @@ def worker(
         if item is None:
             break
 
-        view_path_gt= os.path.join("/content/data/gt", item["path_target_input"]   )
+        view_path_gt= os.path.join("/content/data/gt", item["path_target_aug"]   )
         view_path_input = os.path.join("/content/data/input", item["path_target_aug"]  )
 
         if check_task_finish(view_path_gt, 0) and check_task_finish(view_path_input, 0) :
