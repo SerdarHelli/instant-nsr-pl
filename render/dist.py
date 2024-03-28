@@ -130,7 +130,7 @@ count = multiprocessing.Value("i", 0)
 
 gpu_list=[0]
 num_gpus = 1
-workers_per_gpu = 32
+workers_per_gpu = 12
 # Start worker processes on each of the GPUs
 for gpu_i in range(num_gpus):
     for worker_i in range(workers_per_gpu):
