@@ -7,36 +7,33 @@ from typing import Optional
 import os
 import numpy as np
 
-
+import pandas as pd
 
 
 import argparse
 
 parser = argparse.ArgumentParser(description='distributed rendering')
 
-parser.add_argument('--path_aug', type=str,
-                    help='path_aug')
-parser.add_argument('--path_orig', type=str,
-                    help='path_orig')
+parser.add_argument('--path_df', type=str,
+                    help='path_df')
+parser.add_argument('--path_target', type=str,
+                    help='path_target')
 args = parser.parse_args()
 
 
-dirs_aug=os.listdir(args.path_aug)
-dirs_orig=os.listdir(args.path_orig)
+
+
+
 data=[]
+df=pd.read_csv(args.path_df, dtype ='str')
+for row in df.iterrows():
 
-for x in dirs_aug:
-  y=x.split("_")[0]
-
-  sub_data={
-      
-            "path_aug":args.path_aug+"/"+x,
-            "path_orig":args.path_orig+"/"+y+"_lower.obj",
-            "path_target_aug": x.split(".")[0],
-
-  }
-  data.append(sub_data)
-
+    data.append({
+            "path_aug": str(row[1]["path_aug"]),
+            "path_orig" :str(row[1]["path_orig"]),
+            "path_target_aug":  str(row[1]["path_target_aug"]),
+        } )
+          
 VIEWS = ["_front", "_back", "_right", "_left", "_front_right", "_front_left", "_back_right", "_back_left", "_top"]
 
 def check_task_finish(render_dir, view_index):
@@ -90,7 +87,7 @@ def worker(
             f" CUDA_VISIBLE_DEVICES={gpu} "
             f" blenderproc run --blender-install-path ./ /content/instant-nsr-pl/render/render_blenderproc_persp.py"
             f" --object_path {path_aug} --view 0"
-            f" --output_folder /content/data/input"
+            f" --output_folder {args.path_target}/input"
             f" --object_uid {path_target_aug}"
             f" --resolution 256 "
             f" --radius 1.35 "
@@ -102,7 +99,7 @@ def worker(
             f" CUDA_VISIBLE_DEVICES={gpu} "
             f" blenderproc run --blender-install-path ./ /content/instant-nsr-pl/render/render_blenderproc_persp.py"
             f" --object_path {path_orig} --view 0"
-            f" --output_folder /content/data/gt"
+            f" --output_folder {args.path_target}/gt"
             f" --object_uid {path_target_aug}"
             f" --resolution 256 "
             f" --radius 1.35 "
@@ -122,7 +119,6 @@ def worker(
 
         queue.task_done()
 
-        os.system('cls')
 
 
 queue = multiprocessing.JoinableQueue()
